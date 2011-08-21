@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<schema version="0.3">
+	
+	<table name="btCustomContactForm">
+		<field name="bID" type="I"><KEY /><UNSIGNED /></field>
+		<field name="notifyEmail" type="C" size="255"></field>
+		<field name="thanksMsg" type="X"></field>
+	</table>
+
+</schema>
