@@ -40,7 +40,7 @@ class CustomContactFormBlockController extends BlockController {
 		$data->message = $this->post('message');
 
 		//Validate
-		$error = $this->validate($data);
+		$error = $this->validate_form($data);
 		
 		if ($error->has()) {
 			//Fail -- re-display the form with user's prior data entry
@@ -53,7 +53,7 @@ class CustomContactFormBlockController extends BlockController {
 		}
 	}
 	
-	public function validate($data) {
+	public function validate_form($data) { //Note: this function can't just be called "validate" because then C5 automatically calls it to validate the add/edit dialog!
 		$error = Loader::helper('validation/error');
 		
 		if (!$data->name) {

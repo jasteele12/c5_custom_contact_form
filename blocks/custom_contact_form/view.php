@@ -5,9 +5,9 @@ $fh = Loader::helper('form');
 
 <div class="custom_contact_form">
 	
-	<?php if ($showThanks); ?>
+	<?php if ($showThanks): ?>
 	<div class="success">
-		<?php echo $thanksMsg; ?>
+		<?php echo nl2br($thanksMsg); ?>
 	</div>
 	<?php endif; ?>
 	
