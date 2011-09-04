@@ -35,7 +35,12 @@ $fh = Loader::helper('form');
 
 		<?php echo $fh->label('email', 'Email:'); ?>
 		<?php echo $fh->text('email', $data->email); ?>
-
+		
+		<br />
+		
+		<?php echo $fh->checkbox('optIn', 1, $data->optIn); ?>
+		<?php echo $fh->label('optIn', 'Sign me up for your newsletter'); ?>
+		
 		<br />
 
 		<?php echo $fh->label('message', 'Message:'); ?>

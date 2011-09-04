@@ -16,7 +16,7 @@ class CustomContactFormBlockController extends BlockController {
 	
 	protected $btCacheBlockRecord = true;
 	protected $btCacheBlockOutput = true;
-	protected $btCacheBlockOutputOnPost = true;
+	protected $btCacheBlockOutputOnPost = false;
 	protected $btCacheBlockOutputForRegisteredUsers = true;
 	protected $btCacheBlockOutputLifetime = 300;
 	
@@ -28,6 +28,7 @@ class CustomContactFormBlockController extends BlockController {
 		$data->name = '';
 		$data->email = '';
 		$data->message = '';
+		$data->optIn = false;
 		$this->set('data', $data);		
 	}
 		
@@ -38,7 +39,8 @@ class CustomContactFormBlockController extends BlockController {
 		$data->name = $this->post('name');
 		$data->email = $this->post('email');
 		$data->message = $this->post('message');
-
+		$data->optIn = $this->post('optIn') ? $this->post('optIn') : 0; //Checkbox fields only pass values when they're checked, so testing for empty is how we know if it's not checked
+		
 		//Validate
 		$error = $this->validate_form($data);
 		
@@ -84,11 +86,13 @@ class CustomContactFormBlockController extends BlockController {
 	
 	private function send_notification_email($data) {
 		$subject = '['.SITE.'] New Contact Form Submission';
+		$optInString = $data->optIn ? 'Yes' : 'No';
 		$body = <<<EOB
 A new submission has been made to the custom contact form:
 
 Name: {$data->name}
 Email: {$data->email}
+Newsletter: {$optInString}
 
 Message:
 {$data->message}
