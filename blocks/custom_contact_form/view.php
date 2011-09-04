@@ -29,22 +29,22 @@ $fh = Loader::helper('form');
 	(notice that it adds the entype="multipart/form-data" attribute -- form uploads don't work without this) */ ?>
 
 		<?php echo $fh->label('name', 'Name:'); ?>
-		<?php echo $fh->text('name', $data->name); ?>
+		<?php echo $fh->text('name'); ?>
 
 		<br />
 
 		<?php echo $fh->label('email', 'Email:'); ?>
-		<?php echo $fh->text('email', $data->email); ?>
+		<?php echo $fh->text('email'); ?>
 		
 		<br />
 		
-		<?php echo $fh->checkbox('optIn', 1, $data->optIn); ?>
+		<?php echo $fh->checkbox('optIn', 1); ?>
 		<?php echo $fh->label('optIn', 'Sign me up for your newsletter'); ?>
 		
 		<br />
 
 		<?php echo $fh->label('message', 'Message:'); ?>
-		<?php echo $fh->textarea('message', $data->message); ?>
+		<?php echo $fh->textarea('message'); ?>
 
 	  	<br />
 	

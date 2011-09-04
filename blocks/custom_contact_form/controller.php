@@ -22,52 +22,31 @@ class CustomContactFormBlockController extends BlockController {
 	
 	public function view() {
 		$this->set('showThanks', $this->get('thanks'));
-		
-		//Send empty data object so fields prepopulate with empty data
-		$data = new StdClass;
-		$data->name = '';
-		$data->email = '';
-		$data->message = '';
-		$data->optIn = false;
-		$this->set('data', $data);		
 	}
-		
-	/*** FRONT-END PROCESSING ***/
+	
 	public function action_submit_form() {
-		//Populate data object
-		$data = new StdClass;
-		$data->name = $this->post('name');
-		$data->email = $this->post('email');
-		$data->message = $this->post('message');
-		$data->optIn = $this->post('optIn') ? $this->post('optIn') : 0; //Checkbox fields only pass values when they're checked, so testing for empty is how we know if it's not checked
-		
-		//Validate
-		$error = $this->validate_form($data);
+		$error = $this->validate_form($this->post());
 		
 		if ($error->has()) {
-			//Fail -- re-display the form with user's prior data entry
+			//Fail -- re-display the form (C5 form helpers will repopulate user's entered data for us)
 			$this->set('errors', $error->getList());
-			$this->set('data', $data);
 		} else {
 			//Success -- send notification email and reload/redirect page to avoid browser warnings about re-posting content if user reloads page 
-			$this->send_notification_email($data);
-			$this->success_redirect();
+			$this->send_notification_email($this->post());
+			$redirect_to_path = Page::getCurrentPage()->getCollectionPath() . '?thanks=1';
+			$this->redirect($redirect_to_path);
 		}
 	}
 	
-	public function validate_form($data) { //Note: this function can't just be called "validate" because then C5 automatically calls it to validate the add/edit dialog!
-		$error = Loader::helper('validation/error');
+	public function validate_form($post) { //Note: this function can't just be called "validate" because then C5 automatically calls it to validate the add/edit dialog!
+		$val = Loader::helper('validation/form');
+		$val->setData($post);
+		$val->addRequired('name', 'You must enter your name.');
+		$val->addRequiredEmail('email', 'You must provide a valid email address');
+		$val->test();
+		$error = $val->getError();
 		
-		if (!$data->name) {
-			$error->add('You must enter your name.');
-		}
-		
-		if (!$data->email) {
-			$error->add('You must enter your email address.');
-		} else if (!$this->validateEmailFormat($data->email)) {
-			$error->add('Email address is not in a valid format -- please check that you entered it correctly.');
-		}
-		
+		//Perform manual checks (anything that the validation helper doesn't have rules for)
 		$iph = Loader::helper('validation/ip');
 		if (!$iph->check()) {
 			$error->add($iph->getErrorMessage());
@@ -75,27 +54,22 @@ class CustomContactFormBlockController extends BlockController {
 		
 		//Note that we don't have to validate CSRF tokens ourselves
 		// because C5 handles it for us via the $this->action() function.
-				
+		
 		return $error;
-	}
-	
-	private function validateEmailFormat($email) {
-		$regex = "/^\S+@\S+\.\S+$/"; //see: http://stackoverflow.com/questions/201323/what-is-the-best-regular-expression-for-validating-email-addresses#201447
-		return (bool)preg_match($regex, $email);
 	}
 	
 	private function send_notification_email($data) {
 		$subject = '['.SITE.'] New Contact Form Submission';
-		$optInString = $data->optIn ? 'Yes' : 'No';
+		$optInString = $data['optIn'] ? 'Yes' : 'No';
 		$body = <<<EOB
 A new submission has been made to the custom contact form:
 
-Name: {$data->name}
-Email: {$data->email}
+Name: {$data['name']}
+Email: {$data['email']}
 Newsletter: {$optInString}
 
 Message:
-{$data->message}
+{$data['message']}
 
 EOB;
 //Dev Note: The "EOB;" above must be at the far-left of the page (no whitespace before it),
@@ -109,13 +83,5 @@ EOB;
 		$mh->setSubject($subject);
 		$mh->setBody($body); //Use $mh->setBodyHTML() if you want an HTML email instead of (or in addition to) plain-text
 		$mh->sendMail(); 
-	}
-
-	private function success_redirect($redirect_to_path = '') {
-		$redirect_to_page = empty($redirect_to_path) ? Page::getCurrentPage() : Page::getByPath($redirect_to_path);
-		$redirect_to_url = Loader::helper('navigation')->getCollectionURL($redirect_to_page); //Location headers should be absolute URL's (see http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.30)
-		$redirect_to_url .= (strstr($redirect_to_url, '?') ? '&' : '?') . 'thanks=1';
-		header("Location: " . $redirect_to_url);
-		die;
 	}
 }
